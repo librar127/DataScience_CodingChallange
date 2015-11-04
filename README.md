@@ -6,8 +6,8 @@
 
 ## Directory Hierarchy
 
-	Directory hierarchy is same as mentioned in instuctions provided in README.md file except one additional jar file added into my GITHUB repository. 
-	This jar file includes all the library dependencies for running java code. For example org.json: json parser library in java. My run.sh script runs using this jar file only.
+1.	Directory hierarchy is same as mentioned in instuctions provided in README.md file except one additional jar file added into my GITHUB repository. This jar file 
+	includes all the library dependencies for running java code. For example org.json: json parser library in java. My run.sh script runs using this jar file only.
 
 ## Assumption for implementing feature 2
 
