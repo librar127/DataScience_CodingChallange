@@ -94,7 +94,24 @@ public class tweets_cleaned {
 			/**
 			 * Remove all Escape characters from String line
 			 */
-			text = obj.getString("text").replaceAll("[\\n\\r\\t]", "").replaceAll("(?<=/)[^/]+?(?=/)", "");
+			//text = obj.getString("text").replaceAll("[\\n\\t]", " ").replaceAll("(?<=/)[^/]+?(?=/)", "");
+										/**
+										 * \/ -> /
+										 */
+			text = obj.getString("text").replaceAll("\\\\/", "\\/")					
+										 /**
+										  * \\ -> \
+										  */
+										.replaceAll("\\\\\\\\", "\\\\")
+										/**
+										 * ==  \' -> '
+										 */
+										.replaceAll("\\\\'", "\'")	
+										/**
+										 * ==  \n & \t -> " " (Single Space)
+										 */
+										.replaceAll("[\\n\\t]", " ");
+																		
 			
 			/**
 			 * Count and remove unicode characters
