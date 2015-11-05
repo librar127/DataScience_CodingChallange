@@ -2,12 +2,11 @@
 
 ## Dependencies:
 
-1. 	org.json library has been used for parsing input tweets provided into json format.
+1. 	org.json library has been used for parsing input tweets provided into json format. This library needs to be required for runninh my implementaion. I have included jar file in a directory called IDS_Coding_Challange_lib/json-20140107.jar.
 
 ## Directory Hierarchy
 
-1.	Directory hierarchy is same as mentioned in instuctions provided in README.md file of challange except one additional jar file IDS_Coding_Challange.jar added into my GITHUB repository. 
-	This jar file includes all the library dependencies required for running java code. For example org.json: json parser library in java. run.sh script is being run using this jar file only.
+1.	Directory hierarchy is same as mentioned in instuctions provided in README.md file of challange except one additional jar file IDS_Coding_Challange.jar added into my GITHUB repository and one external library for json parsing. This jar file includes all the library dependencies required for running java code. For example org.json: json parser library in java. run.sh script is being run using this jar file only.
 
 ## Assumption for implementing feature 2
 
