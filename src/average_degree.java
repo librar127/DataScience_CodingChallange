@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -34,31 +33,36 @@ public class average_degree {
 		}
 		
 		average_degree ad = new average_degree();
+		
 		Charset.forName("US-ASCII").newEncoder(); 
 		
-		SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
-		inputFormat.setTimeZone(TimeZone.getTimeZone("Europe/London"));		
+		SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy");
+		inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		List<String> listOfHashtagsForOneMinuteWithTime = new ArrayList<String>();
 		
 		Calendar minWindowTime = Calendar.getInstance();
 		Calendar maxWindowTime = Calendar.getInstance();
 		maxWindowTime.setTimeInMillis(Long.MIN_VALUE);
-		Calendar currentTimeFromLine = Calendar.getInstance();						
-		Calendar currentTimeInLoop = Calendar.getInstance();
+		Calendar currentTimeFromLine = Calendar.getInstance();
 		
-		StringBuffer sb;
+		StringBuilder hashtags;
 		String[] cleanedTweetLine;
 		String tweetLine;
+		int line = 0;
 		
 		try {
-			//BufferedReader br = new BufferedReader(new FileReader("./tweet_input/tweet.txt"));
+			
 			BufferedReader br = new BufferedReader(new FileReader(args[0]));
 			PrintWriter pw = new PrintWriter(new FileWriter("./tweet_output/ft2.txt"));
 			
 			/**
 			 * Read output file ft1.txt line by line
 			 */
+
+			long stime = System.currentTimeMillis();
 			while((tweetLine = br.readLine()) != null){
+				
+				line += 1;
 				
 				cleanedTweetLine = ad.cleanTweets(tweetLine);
 				
@@ -66,33 +70,32 @@ public class average_degree {
 					continue;
 				}
 				
-				//System.out.println(cleanedTweetLine[0]+" "+cleanedTweetLine[1]);
-								
-				sb = new StringBuffer();
-				
 				/**
 				 * Skip a tweet line if it does not contains any hashtags
 				 */
-				if(!cleanedTweetLine[0].contains("#"))
-					continue;
-				else{
+				if(cleanedTweetLine[0].contains("#")){		
 					
+					/**
+					 * Get all the hashtags from a tweetline using Java Regular Expression
+					 */
+					
+					hashtags = new StringBuilder();
+					Matcher matcher = Pattern.compile("#[0-9a-zA-Z_-](\\w+)").matcher(cleanedTweetLine[0]);	
+					while (matcher.find()) {
+
+						hashtags.append(matcher.group().replace("\\s+ ", " ")+ ",");
+					}
+					
+					if(hashtags.toString().equals("")|| hashtags.toString() == null){
+						continue;
+					}
+									
 					try {
 						
 						/**
-						 * Get all the hashtags from a tweetline using Java Regular Expression
-						 */
-						Matcher matcher = Pattern.compile("#(\\w+)").matcher(cleanedTweetLine[0]);	
-						while (matcher.find()) {
-							sb.append("#"+matcher.group(1)+",");
-						}
-						
-						sb.append(","+cleanedTweetLine[1]);
-												
-						/**
 						 * Adding proceed hashtags to the list of one minute window
 						 */
-						listOfHashtagsForOneMinuteWithTime.add(sb.toString());									
+						listOfHashtagsForOneMinuteWithTime.add(hashtags+","+cleanedTweetLine[1]);
 						
 						/**
 						 * Get the formatted Time from tweetline
@@ -116,40 +119,20 @@ public class average_degree {
 						/**
 						 * Check if window of tweetlines has exceeded one minute time
 						 */
-						if(maxWindowTime.getTimeInMillis() - minWindowTime.getTimeInMillis() > 60000){
-							
-							listOfHashtagsForOneMinuteWithTime.remove(0);
-							minWindowTime.setTime(inputFormat.parse(listOfHashtagsForOneMinuteWithTime.get(0).split(",,")[1]));													
-														
-							long timeDiffInMillis = -1L;	
+						if(maxWindowTime.getTimeInMillis() - minWindowTime.getTimeInMillis() > 60000){	
 							
 							/**
 							 * Iterate through all the hashtags line to retain only one minute window hashtags
+							 * Assuming here is that tweets are comming in order of time
 							 */
-							for(int i =0; i<listOfHashtagsForOneMinuteWithTime.size(); i++){
+														
+							while(maxWindowTime.getTimeInMillis() - minWindowTime.getTimeInMillis() > 60000){
 								
-								currentTimeInLoop.setTime(inputFormat.parse(listOfHashtagsForOneMinuteWithTime.get(i).split(",,")[1]));
+								listOfHashtagsForOneMinuteWithTime.remove(0);
+								minWindowTime.setTime(inputFormat.parse(listOfHashtagsForOneMinuteWithTime.get(0).split(",,")[1]));								
 								
-								/**
-								 * Delete the hashtags which are older than one minute from list
-								 */
-								if(maxWindowTime.getTimeInMillis() - currentTimeInLoop.getTimeInMillis() > 60000){
-									listOfHashtagsForOneMinuteWithTime.remove(i);
-									i -= 1; 
-								}else{
-									
-									/**
-									 * This logic is to update minWindowTime even in case hashtags arrive out of order
-									 */
-									if(timeDiffInMillis < maxWindowTime.getTimeInMillis() - currentTimeInLoop.getTimeInMillis()){
-										
-										timeDiffInMillis = maxWindowTime.getTimeInMillis() - currentTimeInLoop.getTimeInMillis();
-										minWindowTime.setTime(currentTimeInLoop.getTime());
-										
-									}
-								}
 							}
-						}	
+						}
 						
 						/**
 						 * Pass the list of all hashtags for one minute window
@@ -162,6 +145,8 @@ public class average_degree {
 				}
 			}
 			
+			long etime = System.currentTimeMillis();
+			System.out.println("Total Time Taken to process "+line+" Tweets:  "+( etime-stime)/1000+" Seconds");
 			System.out.println("Output written to tweet_output/ft2.txt\n");
 			
 			/**
@@ -212,7 +197,23 @@ public class average_degree {
 			/**
 			 * Remove all Escape characters from String line
 			 */
-			text = obj.getString("text").replaceAll("[\\n\\r\\t]", "").replaceAll("(?<=/)[^/]+?(?=/)", "");
+			
+			/**
+			 * == \/ -> /
+			 */
+			text = obj.getString("text").replaceAll("\\\\/", "\\/")					
+						 /**
+						  * == \\ -> \
+						  */
+						.replaceAll("\\\\\\\\", "\\\\")
+						/**
+						 * ==  \' -> '
+						 */
+						.replaceAll("\\\\'", "\'")	
+						/**
+						 * ==  \n & \t -> " " (Single Space)
+						 */
+						.replaceAll("[\\n\\t]", " ");
 			
 			/**
 			 * Count and remove unicode characters
@@ -249,6 +250,7 @@ public class average_degree {
 		
 		Map<String, ArrayList<String>> hashmapOfTwitterGraph = new HashMap<String, ArrayList<String>>();
 		ArrayList<String> listOfHashTagsForEachTweetLine;
+		String hashTagLine;
 		String[] hashTagsForEachTweetLine;
 		
 		/**
@@ -259,7 +261,8 @@ public class average_degree {
 			/**
 			 * Get all the hashtags from a 1-minute window of hashtags
 			 */
-			hashTagsForEachTweetLine = listOfHashTagsForWindow.get(i).split(",,")[0].split(",");
+			hashTagLine = listOfHashTagsForWindow.get(i);
+			hashTagsForEachTweetLine = hashTagLine.split(",,")[0].split(",");
 			
 			/**
 			 * If there is only hashtag node then skip it
@@ -306,7 +309,7 @@ public class average_degree {
 							/**
 							 * If a connected node is already present in its list of connected hashtag nodes
 							 */
-							if (listOfHashTagsForEachTweetLine.contains(hashTagsForEachTweetLine[k])){
+							if (listOfHashTagsForEachTweetLine.contains(hashTagsForEachTweetLine[k].toLowerCase())){
 									
 								/**
 								 * Then skip it
@@ -318,7 +321,7 @@ public class average_degree {
 								/**
 								 * Otherwise add its connected node to the hashtag list
 								 */
-								listOfHashTagsForEachTweetLine.add(hashTagsForEachTweetLine[k]);
+								listOfHashTagsForEachTweetLine.add(hashTagsForEachTweetLine[k].toLowerCase());
 							}
 
 						}
@@ -339,7 +342,7 @@ public class average_degree {
 							continue;							
 						} else {
 							
-							listOfHashTagsForEachTweetLine.add(hashTagsForEachTweetLine[k]);
+							listOfHashTagsForEachTweetLine.add(hashTagsForEachTweetLine[k].toLowerCase());
 						}
 
 					}
@@ -352,21 +355,32 @@ public class average_degree {
 			}
 		}
 		
-		double sumOfDegrees = 0;
 		
-		/**
-		 * Iterate twitter hashtag graph to calculate the sum of degree of nodes
-		 */
-		for(Map.Entry<String, ArrayList<String>> entry: hashmapOfTwitterGraph.entrySet()) {
+		if(hashmapOfTwitterGraph.size() > 0){
+			double sumOfDegrees = 0;
 			
-		    sumOfDegrees += entry.getValue().size();
+			/**
+			 * Iterate twitter hashtag graph to calculate the sum of degree of nodes
+			 */
+			for(Map.Entry<String, ArrayList<String>> entry: hashmapOfTwitterGraph.entrySet()) {
+				
+			    sumOfDegrees += entry.getValue().size();
+			}
+			
+			/**
+			 * Write the result to output file: tweet_output/ft2.txt
+			 */
+			pw.format("%.2f", sumOfDegrees / hashmapOfTwitterGraph.size());
+			pw.println();
+			
+		}else{
+			/**
+			 * In case there is only hashtag node which is not connected to any other node
+			 * Return average degree as one
+			 */
+			pw.format("0.00");
+			pw.println();
 		}
-		
-		/**
-		 * Write the result to output file: tweet_output/ft2.txt
-		 */
-		pw.format("%.2f", sumOfDegrees / hashmapOfTwitterGraph.size());
-		pw.println();
 	}
 
 }
