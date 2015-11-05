@@ -35,6 +35,7 @@ public class tweets_cleaned {
 		}
 		
 		tweets_cleaned tc = new tweets_cleaned();
+		int line = 0;
 		
 		try {
 			
@@ -43,14 +44,15 @@ public class tweets_cleaned {
 			
 			String jsonLine;
 			String[] cleanedTweet;
-					
+			
+			long stime = System.currentTimeMillis();		
 			while((jsonLine = br.readLine())!=null){
 
 				cleanedTweet = tc.cleanTweets(jsonLine);
+				line += 1;
 				
 				if(cleanedTweet[0] != null && cleanedTweet[1] != null)				
 					pw.println(cleanedTweet[0]+" (timestamp: "+cleanedTweet[1]+")");
-
 			}
 			
 			pw.println("\n\n"+ noOfLinewithUnicodeChar + " tweets contained unicode.");
@@ -58,6 +60,9 @@ public class tweets_cleaned {
 			/**
 			 * Write the unicode characters count output file ft1.txt
 			 */
+			
+			long etime = System.currentTimeMillis();
+			System.out.println("Total Time Taken to process "+line+" Tweets:  "+( etime-stime)/1000+" Seconds");
 			System.out.println("Output written to tweet_output/ft1.txt"+"\n"+ noOfLinewithUnicodeChar + " tweets contained unicode.");
 			
 			br.close();
@@ -94,13 +99,13 @@ public class tweets_cleaned {
 			/**
 			 * Remove all Escape characters from String line
 			 */
-			//text = obj.getString("text").replaceAll("[\\n\\t]", " ").replaceAll("(?<=/)[^/]+?(?=/)", "");
+			
 										/**
-										 * \/ -> /
+										 * == \/ -> /
 										 */
 			text = obj.getString("text").replaceAll("\\\\/", "\\/")					
 										 /**
-										  * \\ -> \
+										  * == \\ -> \
 										  */
 										.replaceAll("\\\\\\\\", "\\\\")
 										/**
@@ -127,6 +132,7 @@ public class tweets_cleaned {
 		 * Get the created_at field from json tweet only if it is present
 		 */
 		if(obj.has("created_at")){
+			
 			timestamp = obj.getString("created_at").replaceAll("(?<=/)[^/]+?(?=/)", "");
 		}
 
