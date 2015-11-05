@@ -18,3 +18,7 @@
 	degree for three lines (in case they fall in one minute  window) and writes to ft2.txt and so... I think this is what we needed as output. 
 
 3.	In case of there is only one hashtag node present in window of one minute and that hashtag is not connected to any other hashtag node. In tis case average degree 0.00 is being returned as no of node connected(0)/total nodes present(1) = 0.
+
+## Instruction for running 
+
+1.	Please close this reposity and extract it to local system. Just run ./run.sh command. By default it reads ./tweet_input/tweets.txt file. You can change to any other input file from run.sh script.
