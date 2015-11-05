@@ -11,9 +11,11 @@
 
 ## Assumption for implementing feature 2
 
-1. 	Althought tweets are comming in order of time only. This situation of being out of order is also handled just in case any such scenario occurs.
+1. 	It is assumed that tweets will be comming in order of time.
 	
 2. 	Second assumption is that while running average_degree.java, output is written to tweet_output/ft2.txt file for each line which contains more than 1 hashtags. 
 	For very first line it calculates average degree and writes it to ft2.txt. When second line comes, it checks for window duration calculates average degree for 
 	two lines hashtags (in case they fall in 1-minute window) and writes the output. Third time when a new line comes, it check the window duration calculates average 
 	degree for three lines (in case they fall in one minute  window) and writes to ft2.txt and so... I think this is what we needed as output. 
+
+3.	In case of there is only one hashtag node present in window of one minute and that hashtag is not connected to any other hashtag node. In tis case average degree 0.00 is being returned as no of node connected(0)/total nodes present(1) = 0.
