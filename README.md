@@ -1,4 +1,4 @@
-# InsightDataScience Coding Challange
+# DataScience Coding Challange
 
 ## Dependencies:
 
